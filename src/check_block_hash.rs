@@ -12,12 +12,12 @@ use reqwest::Client;
 /// between shadow and etherscan one by one
 #[async_recursion]
 pub async fn start(shadow_url: &str, etherscan_apikey: &str, alert_manager: &str, block: u64) -> Result<()> {
-    println!("check block hash: {}", block);
+    log::info!("checking block hash: {} ...", block);
 
     match block_hash_is_same(shadow_url, etherscan_apikey,  block).await {
         Ok(is_same) => {
             if !is_same {
-                println!("block {} is not same", block);
+                log::error!("block {} is not same", block);
                 alert_block_hash_is_not_same(alert_manager, shadow_url, block).await;
             }
 
@@ -25,7 +25,7 @@ pub async fn start(shadow_url: &str, etherscan_apikey: &str, alert_manager: &str
             start(shadow_url, etherscan_apikey, alert_manager, block + 1).await
         }
         Err(e) => {
-            println!("check_block_hash error: {:?}, wait 10 seconds to retry", e);
+            log::error!("check_block_hash error: {:?}, wait 10 seconds to retry", e);
             delay_for(Duration::from_millis(10000)).await;
             start(shadow_url, etherscan_apikey, alert_manager, block + 1).await
         }
@@ -73,7 +73,7 @@ async fn block_hash_from_shadow(shadow_url: &str, block_number: u64) -> Result<S
 }
 async fn alert_block_hash_is_not_same(alert_manager: &str, shadow_url: &str, block: u64) {
     if let Err(e) = do_alert_block_hash_is_not_same(alert_manager, shadow_url, block).await {
-        println!("alert fail by: {:?}", e)
+        log::error!("alert fail by: {:?}", e)
     }
 }
 async fn do_alert_block_hash_is_not_same(alert_manager: &str, shadow_url: &str, block: u64) -> Result<()> {
@@ -90,7 +90,6 @@ async fn do_alert_block_hash_is_not_same(alert_manager: &str, shadow_url: &str, 
 
     let client = Client::new();
 
-    let text = client.post(alert_manager).json(&map).send().await?.text().await?;
-    println!("{}", text);
+    let _text = client.post(alert_manager).json(&map).send().await?.text().await?;
     Ok(())
 }

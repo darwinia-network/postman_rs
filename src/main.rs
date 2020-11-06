@@ -6,6 +6,9 @@ mod check_block_hash;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    std::env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     // read config
     let settings = get_config().unwrap();
     let shadow_url = settings.get_str("shadow")?;

@@ -10,10 +10,11 @@ use reqwest::Client;
 /// alert if the difference between the two exceeds the threshold
 #[async_recursion]
 pub async fn start(shadow_url: &str, ethereum_url: &str, alert_manager: &str, gap_threshold: u64) -> Result<()> {
+    log::info!("checking running...");
     match calc_gap(shadow_url, ethereum_url).await {
         Ok(gap) => {
             if gap > gap_threshold {
-                println!("Shadow may have stopped, gap: {}", gap);
+                log::error!("shadow may have stopped, gap: {}", gap);
                 alert_shadow_may_stopped(alert_manager, shadow_url, gap).await;
                 delay_for(Duration::from_millis(600000)).await; // 10 minutes
                 start(shadow_url, ethereum_url, alert_manager, gap_threshold).await
@@ -23,7 +24,7 @@ pub async fn start(shadow_url: &str, ethereum_url: &str, alert_manager: &str, ga
             }
         }
         Err(e) => {
-            println!("check_running error: {:?}, wait 10 minutes to retry", e);
+            log::error!("check_running error: {:?}, wait 10 minutes to retry", e);
             delay_for(Duration::from_millis(600000)).await; // 10 minutes
             start(shadow_url, ethereum_url, alert_manager, gap_threshold).await
         }
@@ -58,7 +59,7 @@ async fn latest_block_number(ethereum_url: &str) -> Result<u64> {
 
 async fn alert_shadow_may_stopped(alert_manager: &str, shadow_url: &str, gap: u64) {
     if let Err(e) = do_alert_shadow_may_stopped(alert_manager, shadow_url, gap).await {
-        println!("alert fail by: {:?}", e)
+        log::error!("alert fail by: {:?}", e)
     }
 }
 
@@ -74,11 +75,7 @@ async fn do_alert_shadow_may_stopped(alert_manager: &str, shadow_url: &str, gap:
         ].concat(),
     };
     let map: Value = serde_json::from_str(&string)?;
-
     let client = Client::new();
-
-    println!("{}", string);
-    let text = client.post(alert_manager).json(&map).send().await?.text().await?;
-    println!("{}", text);
+    let _text = client.post(alert_manager).json(&map).send().await?.text().await?;
     Ok(())
 }
