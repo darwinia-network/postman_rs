@@ -7,8 +7,7 @@ mod check_block_hash;
 #[tokio::main]
 async fn main() -> Result<()> {
     // read config
-    let mut settings = Config::default();
-    settings.merge(File::with_name("config.toml"))?;
+    let settings = get_config().unwrap();
     let shadow_url = settings.get_str("shadow")?;
     let alert_manager = settings.get_str("alert_manager")?;
 
@@ -26,5 +25,13 @@ async fn main() -> Result<()> {
     );
 
     first.and(second)
+}
+
+fn get_config() ->  Result<Config> {
+    let mut config_path = dirs::home_dir().unwrap();
+    config_path.push(".postman_rs/config.toml");
+    let mut settings = Config::default();
+    settings.merge(File::with_name(config_path.as_path().to_str().unwrap()))?;
+    Ok(settings)
 }
 
