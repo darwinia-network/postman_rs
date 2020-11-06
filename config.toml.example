@@ -1,0 +1,10 @@
+shadow = "https://shadow.darwinia.network"
+alert_manager = "http://127.0.0.1:9093/api/v2/alerts"
+
+# check block hash, compare the last_mmr_leaf from shadow with ethereum height from infura
+ethereum = "https://mainnet.infura.io/v3/xxxxxxxxxxxxxxxx"
+gap_threshold = 100
+
+# check running, compare block hash from shadow and etherscan
+etherscan_apikey = "xxxxxxxxxxxx"
+start_block = 1111
