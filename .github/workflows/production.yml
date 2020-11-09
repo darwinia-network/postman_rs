@@ -1,9 +1,8 @@
-name: Release
+name: Production
 
 on:
   push:
     tags: ["*"]
-    branches: ["main", "feature/github-actions-release"]
 
 jobs:
   build-docker-image:
@@ -27,9 +26,11 @@ jobs:
 
       - uses: ./.github/actions/docker-build-deploy
         with:
+          deploy_phase: production
           docker_registry: quay.io
+          trigger_token: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_TOKEN }}
+          trigger_endpoint: ${{ secrets.ITERING_DEPLOYMENT_TRIGGER_ENDPOINT }}
           docker_build_options: -f .maintain/Dockerfile
-          skip_deploy: true
 
       - uses: ./.github/actions/dingtalk-notify
         if: failure() && (github.event_name == 'pull_request' && github.event.pull_request.draft == false || github.event_name != 'pull_request')
